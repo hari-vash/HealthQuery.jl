@@ -1,0 +1,43 @@
+model,description,parse_valid,execution_ok,execution_accurate,latency_ms,error,generated_code
+qwen3.5:4b,Simple aggregate count — tests group() requirement,true,true,true,17799.999952316284,,"@funsql begin
+    from(person)
+    group()
+    select(count())
+end"
+qwen3.5:4b,Filter on coded column — tests concept_id knowledge,true,true,true,17927.99997329712,,"@funsql begin
+    from(person)
+    filter(gender_concept_id == 8532)
+    select(person_id, year_of_birth)
+end"
+qwen3.5:4b,Join + project + group for distinct values,true,true,true,19394.00005340576,,"@funsql begin
+    from(person)
+    join(loc => from(location), on = location_id == loc.location_id)
+    select(state => loc.state)
+    group(state)
+    select(state)
+end"
+qwen3.5:4b,Count distinct patients via group(person_id),true,true,true,16737.99991607666,,"@funsql begin
+    from(condition_occurrence)
+    group(person_id)
+    select(count())
+end"
+qwen3.5:4b,Multi-aggregate with min/max — tests aggregate variety,true,true,true,17867.000102996826,,"@funsql begin
+    from(visit_occurrence)
+    group()
+    select(min(visit_start_date), max(visit_start_date))
+end"
+qwen3.5:4b,Numeric comparison filter — tests inequality operators,true,true,true,17569.999933242798,,"@funsql begin
+    from(person)
+    filter(year_of_birth > 1950)
+    select(person_id, year_of_birth)
+end"
+qwen3.5:4b,Group-by with key in select — tests per-group results,true,true,true,17363.999843597412,,"@funsql begin
+    from(drug_exposure)
+    group(person_id)
+    select(person_id, count())
+end"
+qwen3.5:4b,Distinct patients via group(person_id) — true deduplication test,true,true,true,16395.999908447266,,"@funsql begin
+    from(measurement)
+    group(person_id)
+    select(person_id)
+end"
