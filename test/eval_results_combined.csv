@@ -1,47 +1,47 @@
 model,description,parse_valid,execution_ok,execution_accurate,latency_ms,error,generated_code
-qwen3.5:4b,Simple aggregate count — tests group() requirement,true,true,true,26671.000003814697,,"@funsql begin
+qwen3.5:4b,Simple aggregate count — tests group() requirement,true,true,true,19252.000093460083,,"@funsql begin
     from(person)
     group()
     select(count())
 end"
-qwen3.5:4b,Filter on coded column — tests concept_id knowledge,true,true,true,19358.00004005432,,"@funsql begin
+qwen3.5:4b,Filter on coded column — tests concept_id knowledge,true,true,true,20591.000080108643,,"@funsql begin
     from(person)
     filter(gender_concept_id == 8532)
     select(person_id, year_of_birth)
 end"
-qwen3.5:4b,Join + project + group for distinct values,true,true,true,20588.000059127808,,"@funsql begin
+qwen3.5:4b,Join + project + group for distinct values,true,true,true,21875.999927520752,,"@funsql begin
     from(person)
     join(loc => from(location), on = location_id == loc.location_id)
     select(state => loc.state)
     group(state)
     select(state)
 end"
-qwen3.5:4b,Count distinct patients via group(person_id),true,true,true,17782.000064849854,,"@funsql begin
+qwen3.5:4b,Count distinct patients via group(person_id),true,true,true,18664.999961853027,,"@funsql begin
     from(condition_occurrence)
     group(person_id)
     select(count())
 end"
-qwen3.5:4b,Multi-aggregate with min/max — tests aggregate variety,true,true,true,19754.99987602234,,"@funsql begin
+qwen3.5:4b,Multi-aggregate with min/max — tests aggregate variety,true,true,true,21151.000022888184,,"@funsql begin
     from(visit_occurrence)
     group()
     select(min(visit_start_date), max(visit_start_date))
 end"
-qwen3.5:4b,Numeric comparison filter — tests inequality operators,true,true,true,19397.000074386597,,"@funsql begin
+qwen3.5:4b,Numeric comparison filter — tests inequality operators,true,true,true,20023.9999294281,,"@funsql begin
     from(person)
     filter(year_of_birth > 1950)
     select(person_id, year_of_birth)
 end"
-qwen3.5:4b,Group-by with key in select — tests per-group results,true,true,true,20870.999813079834,,"@funsql begin
+qwen3.5:4b,Group-by with key in select — tests per-group results,true,true,true,19407.999992370605,,"@funsql begin
     from(drug_exposure)
     group(person_id)
     select(person_id, count())
 end"
-qwen3.5:4b,Distinct patients via group(person_id) — true deduplication test,true,true,true,1.78685e7,,"@funsql begin
+qwen3.5:4b,Distinct patients via group(person_id) — true deduplication test,true,true,true,29134.999990463257,,"@funsql begin
     from(measurement)
     group(person_id)
     select(person_id)
 end"
-gemini,Simple aggregate count — tests group() requirement,true,false,false,6387.00008392334,"FunSQL.RebaseError in:
+gemini,Simple aggregate count — tests group() requirement,true,false,false,17055.000066757202,"FunSQL.RebaseError in:
 let q1 = Group(),
     q2 = Select(Agg.count(Get.person_id))
     Fun.""*""(q1, q2)
@@ -49,7 +49,7 @@ end","@funsql begin
     from(person)
     select(count(person_id))
 end"
-gemini,Filter on coded column — tests concept_id knowledge,false,false,false,878.000020980835,"No @funsql block found in LLM output.
+gemini,Filter on coded column — tests concept_id knowledge,false,false,false,7785.0000858306885,"No @funsql block found in LLM output.
 Raw: ```funsql
 begin
     from(person)
@@ -57,7 +57,7 @@ begin
     select(person_id, year_of_birth)
 end
 ```",
-gemini,Join + project + group for distinct values,true,false,false,1209.0001106262207,"FunSQL eval failed — likely invalid column/table name.
+gemini,Join + project + group for distinct values,true,false,false,41243.99995803833,"FunSQL eval failed — likely invalid column/table name.
 Code: @funsql begin
     from(person)
     join(
@@ -77,7 +77,7 @@ Suggestion: check for spelling errors or missing imports.","@funsql begin
     select(loc.state)
     distinct()
 end"
-gemini,Count distinct patients via group(person_id),false,false,false,1312.999963760376,"No @funsql block found in LLM output.
+gemini,Count distinct patients via group(person_id),false,false,false,6687.999963760376,"No @funsql block found in LLM output.
 Raw: ```funsql
 begin
     from(condition_occurrence)
@@ -85,33 +85,14 @@ begin
     select(count())
 end
 ```",
-gemini,Multi-aggregate with min/max — tests aggregate variety,true,false,false,827.9998302459717,"FunSQL eval failed — likely invalid column/table name.
-Code: @funsql begin
+gemini,Multi-aggregate with min/max — tests aggregate variety,false,false,false,7551.000118255615,"No @funsql block found in LLM output.
+Raw: ```funsql
+begin
     from(visit_occurrence)
-    select(
-        min(visit_start_date) => earliest_visit_date,
-        max(visit_start_date) => latest_visit_date
-    )
+    select(min(visit_start_date), max(visit_start_date))
 end
-Error: MethodError: Cannot `convert` an object of type Pair{FunSQL.SQLNode, Symbol} to an object of type FunSQL.AbstractSQLNode
-The function `convert` exists, but no method is defined for this combination of argument types.
-
-Closest candidates are:
-  convert(::Type{T}, !Matched::T) where T
-   @ Base Base_compiler.jl:133
-  convert(::Type{FunSQL.AbstractSQLNode}, !Matched::FunSQL.SQLTable)
-   @ FunSQL C:\Users\haria\.julia\packages\FunSQL\wZQuX\src\nodes\from.jl:220
-  convert(::Type{FunSQL.AbstractSQLNode}, !Matched::Symbol)
-   @ FunSQL C:\Users\haria\.julia\packages\FunSQL\wZQuX\src\nodes\get.jl:70
-  ...
-","@funsql begin
-    from(visit_occurrence)
-    select(
-        min(visit_start_date) => earliest_visit_date,
-        max(visit_start_date) => latest_visit_date
-    )
-end"
-gemini,Numeric comparison filter — tests inequality operators,false,false,false,963.0000591278076,"No @funsql block found in LLM output.
+```",
+gemini,Numeric comparison filter — tests inequality operators,false,false,false,9510.999917984009,"No @funsql block found in LLM output.
 Raw: ```funsql
 begin
     from(person)
@@ -119,15 +100,12 @@ begin
     select(person_id, year_of_birth)
 end
 ```",
-gemini,Group-by with key in select — tests per-group results,false,false,false,1098.9999771118164,"No @funsql block found in LLM output.
-Raw: ```funsql
-begin
+gemini,Group-by with key in select — tests per-group results,true,true,false,8446.000099182129,,"@funsql begin
     from(drug_exposure)
     group(person_id)
-    select(person_id, drug_exposure_count => count())
-end
-```",
-gemini,Distinct patients via group(person_id) — true deduplication test,true,true,true,1092.0000076293945,,"@funsql begin
+    select(person_id, num_drug_exposures => count())
+end"
+gemini,Distinct patients via group(person_id) — true deduplication test,true,true,true,9710.999965667725,,"@funsql begin
     from(measurement)
     group(person_id)
     select(person_id)

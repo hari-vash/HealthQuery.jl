@@ -57,6 +57,13 @@ function generate_funsql(
     Regular columns like person_id are NOT accessible after group().
     To get distinct values of a column, use group(that_column), not group().
     
+    Alias syntax is ALWAYS: new_name => expression  (name on LEFT, expression on RIGHT)
+    CORRECT: select(earliest => min(visit_start_date))
+    WRONG:   select(min(visit_start_date) => earliest)
+    
+    In join() conditions, do NOT qualify the left-hand column with its table name.
+    CORRECT: on = location_id == loc.location_id
+    WRONG:   on = person.location_id == loc.location_id
 
     ## FunSQL SYNTAX EXAMPLES:
 
