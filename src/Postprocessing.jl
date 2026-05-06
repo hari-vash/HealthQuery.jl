@@ -54,16 +54,17 @@ function parse_funsql_code(raw_output::String) :: Tuple{String, Bool, String}
 end
 
 # Internal helper — validates extracted code as Julia AST
-function _validate(code::String) :: Tuple{String, Bool, String}
+function _validate(code::AbstractString) :: Tuple{String, Bool, String}
+    code_str = String(code)
     parsed = try
-        Meta.parse(code)
+        Meta.parse(code_str)
     catch e
-        return (code, false, "Syntax error: $(sprint(showerror, e))")
+        return (code_str, false, "Syntax error: $(sprint(showerror, e))")
     end
 
     if parsed isa Expr && parsed.head == :incomplete
-        return (code, false, "Incomplete expression — likely truncated.")
+        return (code_str, false, "Incomplete expression — likely truncated.")
     end
 
-    return (code, true, "ok")
+    return (code_str, true, "ok")
 end
