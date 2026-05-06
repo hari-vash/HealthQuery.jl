@@ -39,31 +39,48 @@ function generate_funsql(
     Translate the health question into a valid @funsql begin...end block.
     Output ONLY the @funsql block. No explanation, no markdown, no raw SQL.
 
-    ## CRITICAL FunSQL RULE:
-    NEVER use count(), sum(), avg(), or any aggregate in select() without first
-    calling group(). For counting all rows in a table, use group() with no
-    arguments before select(count()). This is mandatory — violating it causes
-    a ReferenceError at render time.
-    
-    When joining a table with an alias (e.g. loc => from(location)) and you
-    need to group by a column from that joined table, you MUST first project
-    it with select(), then group by the projected name. Example:
-    select(state => loc.state)   # project first
-    group(state)                 # then group by projected name
-    select(state)                # then final select
-    
-    group() with NO arguments means "treat entire table as one group" — only
-    aggregate expressions (count, min, max) are valid in the following select().
-    Regular columns like person_id are NOT accessible after group().
-    To get distinct values of a column, use group(that_column), not group().
-    
-    Alias syntax is ALWAYS: new_name => expression  (name on LEFT, expression on RIGHT)
-    CORRECT: select(earliest => min(visit_start_date))
-    WRONG:   select(min(visit_start_date) => earliest)
-    
-    In join() conditions, do NOT qualify the left-hand column with its table name.
-    CORRECT: on = location_id == loc.location_id
-    WRONG:   on = person.location_id == loc.location_id
+    ## CRITICAL FunSQL RULES — follow all of these without exception:
+
+    1. NEVER use count(), sum(), avg(), min(), max() in select() without first
+       calling group(). Violating this causes a ReferenceError at render time.
+
+    2. group() with NO arguments means "treat entire table as one group".
+       Only aggregate expressions are valid in the select() that follows.
+       Regular columns like person_id are NOT accessible after bare group().
+       Use this only when you want a single aggregate result for the whole table.
+       CORRECT: group() → select(count())
+       WRONG:   group() → select(person_id, count())
+
+    3. group(column) means "distinct values of that column".
+       Use this when you want one row per unique value of a column.
+       CORRECT: group(person_id) → select(person_id, count())
+       WRONG:   group() → select(person_id)
+
+    4. The grouping key MUST appear in the final select() for per-group results.
+       If you group by person_id and want one row per patient, person_id must
+       be in select(). Without it you get a single total row, not per-patient rows.
+       CORRECT: group(person_id) → select(person_id, count())
+       WRONG:   group(person_id) → select(count())
+
+    5. After join(alias => from(table), ...), you MUST project joined columns
+       with select() before calling group(). The alias does not survive group().
+       CORRECT:
+         join(loc => from(location), on = location_id == loc.location_id)
+         select(state => loc.state)
+         group(state)
+         select(state)
+       WRONG:
+         join(loc => from(location), on = location_id == loc.location_id)
+         group(loc.state)
+         select(loc.state)
+
+    6. Alias syntax is ALWAYS: new_name => expression (name LEFT, expression RIGHT).
+       CORRECT: select(earliest => min(visit_start_date))
+       WRONG:   select(min(visit_start_date) => earliest)
+
+    7. In join() conditions, do NOT qualify the left-hand column with its table name.
+       CORRECT: on = location_id == loc.location_id
+       WRONG:   on = person.location_id == loc.location_id
 
     ## FunSQL SYNTAX EXAMPLES:
 
@@ -157,7 +174,7 @@ function generate_funsql(
     t_start = time()
 
     msg = aigenerate(
-        PT.OllamaSchema(),   # explicit schema — no registry lookup
+        PT.OllamaSchema(),
         full_prompt;
         model      = model,
         api_kwargs = (;
